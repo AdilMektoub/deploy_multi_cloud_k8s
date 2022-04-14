@@ -19,6 +19,34 @@ jobs:
             kubernetesServiceConnection: serviceConnection #replace with your service connection
             namespace: aksnamespace
             manifests: manifests/*
+            containers: |
+              foo.azurecr.io/demo:$(tagVariable1)
+              bar.azurecr.io/demo:$(tagVariable2)
+            imagePullSecrets: |
+              foo-acr-secret
+              bar-acr-secret
+        
+        # create a secret between front and back
+        - checkout: self
+        - task: KubernetesManifest@0
+          displayName: Create secret
+          inputs: 
+            action: createSecret
+            namespace: aksnamespace
+            secretType: dockerRegistry
+            secretName: foo-acr-secret
+            dockerRegistryEndpoint: fooACR
+
+        - task: KubernetesManifest@0
+          displayName: Create secret
+          inputs: 
+            action: createSecret
+            namespace: aksnamespace
+            secretType: dockerRegistry
+            secretName: bar-acr-secret
+            dockerRegistryEndpoint: barACR
+
+        
 - deployment:
   displayName: Deploy to GKE
   pool:
